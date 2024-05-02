@@ -9,7 +9,7 @@ void Emulator8080::unimplementedInstruction() {
 }
 
 /* Is the emulator running? */
-bool Emulator8080::Running() {
+bool Emulator8080::Running() const {
     return running;
 }
 
@@ -118,9 +118,120 @@ void Emulator8080::Emulate() {
         case 0x57: /* MOV D, A */
             d = a;
             break;
-        case 0x58:
+        case 0x58: /* MOV E, B */
             e = b;
             break;
+        case 0x59: /* MOV E, C */
+            e = c;
+            break;
+        case 0x5A: /* MOV E, D */
+            e = d;
+            break;
+        case 0x5B: /* MOV E, E */
+            break;
+        case 0x5C: /* MOV E, H */
+            e = h;
+            break;
+        case 0x5D: /* MOV E, L */
+            e = l;
+            break;
+        case 0x5E: /* MOV E, M */
+            e = memory[(h << 8) | l];
+            break;
+        case 0x5F: /* MOV E, A */
+            e = a;
+            break;
+        case 0x60: /* MOV H, B */
+            h = b;
+            break;
+        case 0x61: /* MOV H, C */
+            h = c;
+            break;
+        case 0x62: /* MOV H, D */
+            h = d;
+            break;
+        case 0x63: /* MOV H, E */
+            h = e;
+            break;
+        case 0x64: /* MOV H, H */
+            break;
+        case 0x65: /* MOV H, L */
+            h = l;
+            break;
+        case 0x66: /* MOV H, M */
+            h = memory[(h << 8) | l];
+            break;
+        case 0x67: /* MOV H, A */
+            h = a;
+            break;
+        case 0x68: /* MOV L, B */
+            l = b;
+            break;
+        case 0x69: /* MOV L, C */
+            l = c;
+            break;
+        case 0x6A: /* MOV L, D */
+            l = d;
+            break;
+        case 0x6B: /* MOV L, E */
+            l = e;
+            break;
+        case 0x6C: /* MOV L, H */
+            l = h;
+            break;
+        case 0x6D: /* MOV L, L */
+            break;
+        case 0x6E: /* MOV L, M */
+            l = memory[(h << 8) | l];
+            break;
+        case 0x6F: /* MOV L, A */
+            l = a;
+            break;
+        case 0x70: /* MOV M, B */
+            memory[(h << 8) | l] = b;
+            break;
+        case 0x71: /* MOV M, C */
+            memory[(h << 8) | l] = c;
+            break;
+        case 0x72: /* MOV M, D */
+            memory[(h << 8) | l] = d;
+            break;
+        case 0x73: /* MOV M, E */
+            memory[(h << 8) | l] = e;
+            break;
+        case 0x74: /* MOV M, H */
+            memory[(h << 8) | l] = h;
+            break;
+        case 0x75: /* MOV M, L */
+            memory[(h << 8) | l] = l;
+            break;
+        case 0x77: /* MOV M, A */
+            memory[(h << 8) | l] = a;
+            break;
+        case 0x78: /* MOV A, B */
+            a = b;
+            break;
+        case 0x79: /* MOV A, C */
+            a = c;
+            break;
+        case 0x7A: /* MOV A, D */
+            a = d;
+            break;
+        case 0x7B: /* MOV A, E */
+            a = e;
+            break;
+        case 0x7C: /* MOV A, H */
+            a = h;
+            break;
+        case 0x7D: /* MOV A, L */
+            a = l;
+            break;
+        case 0x7E: /* MOV A, M */
+            a = memory[(h << 8) | l];
+            break;
+        case 0x7F: /* MOV A, A */
+            break;
+
         /* Unimplemented */
         default:
             unimplementedInstruction();

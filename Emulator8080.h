@@ -16,7 +16,7 @@ class Emulator8080
 {
 public:
     void Emulate();
-    bool Running();
+    bool Running() const;
 
 private:
     void unimplementedInstruction();
