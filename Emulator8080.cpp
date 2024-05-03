@@ -232,6 +232,80 @@ void Emulator8080::Emulate() {
         case 0x7F: /* MOV A, A */
             break;
 
+        case 0x06: /* MVI B, d8 */
+            b = opCode[1];
+            ++pc;
+            break;
+        case 0x16: /* MVI D, d8 */
+            d = opCode[1];
+            ++pc;
+            break;
+        case 0x26: /* MVI H, d8 */
+            h = opCode[1];
+            ++pc;
+            break;
+        case 0x36: /* MVI M, d8 */
+            memory[(h << 8) | l] = opCode[1];
+            ++pc;
+            break;
+        case 0x0E: /* MVI C, d8 */
+            c = opCode[1];
+            ++pc;
+            break;
+        case 0x1E: /* MVI E, d8 */
+            e = opCode[1];
+            ++pc;
+            break;
+        case 0x2E: /* MVI L, d8 */
+            l = opCode[1];
+            ++pc;
+            break;
+        case 0x3E: /* MVI A, d8 */
+            a = opCode[1];
+            ++pc;
+            break;
+
+        case 0x3A: /* LDA addr */
+            a = memory[(opCode[2] << 8) | opCode[1]];
+            pc += 2;
+            break;
+
+        case 0x0A: /* LDAX B */
+            a = memory[(b << 8) | c];
+            break;
+        case 0x1A: /* LDAX D */
+            b = memory[(d << 8) | e];
+            break;
+
+        case 0x2A: /* LHLD addr */
+            l = memory[(opCode[2] << 8) | opCode[1]];
+            h = memory[((opCode[2] << 8) | opCode[1]) + 1];
+            pc += 2;
+            break;
+
+        case 0x32: /* STA addr */
+            memory[(opCode[2] << 8) | opCode[1]] = a;
+            pc += 2;
+            break;
+
+        case 0x02: /* STAX B */
+            memory[(b << 8) | c] = a;
+            break;
+        case 0x12: /* STAX D */
+            memory[(d << 8) | c] = a;
+            break;
+
+        case 0x22: /* SHLD addr */
+            memory[(opCode[2] << 8) | opCode[1]] = l;
+            memory[((opCode[2] << 8) | opCode[1]) + 1] = h;
+            pc += 2;
+            break;
+
+        case 0xEB: /* XCHG */
+            h = e;
+            l = d;
+            break;
+
         /* Unimplemented */
         default:
             unimplementedInstruction();
