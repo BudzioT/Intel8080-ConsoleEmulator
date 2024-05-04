@@ -3,7 +3,7 @@
 #include <cstdio>
 
 /* Handle unimplemented instructions */
-void Emulator8080::unimplementedInstruction() {
+void Emulator8080::UnimplementedInstruction() {
     printf("Error: Unimplemented Instruction!");
     running = false;
 }
@@ -11,6 +11,20 @@ void Emulator8080::unimplementedInstruction() {
 /* Is the emulator running? */
 bool Emulator8080::Running() const {
     return running;
+}
+
+uint8_t Emulator8080::Parity(uint16_t ans) const {
+    uint8_t num = ans & 0xFF; /* Take the lower bits */
+    int size = 8;
+    int count = 0;
+
+    for (int i = 0; i < size; i++) {
+        if (num & 0x1)
+            ++count;
+        num >>= 1;
+    }
+
+    return (count & 0x1) == 0;
 }
 
 /* Emulate the 8080 using saved memory buffer */
@@ -306,9 +320,19 @@ void Emulator8080::Emulate() {
             l = d;
             break;
 
+        case 0x80: {
+            uint16_t ans = a + static_cast<uint16_t>(b);
+            cc.z = ((ans & 0xFF) == 0 ? 1 : 0);
+            cc.s = ((ans & 0x80) ? 1 : 0);
+            cc.p = Parity(ans & 0xFF);
+            cc.cy = ans > 0xFF;
+            cc.ac = ((a & 0xf) + (b & 0xf)) > 0xf;
+            break;
+        }
+
         /* Unimplemented */
         default:
-            unimplementedInstruction();
+            UnimplementedInstruction();
             break;
     }
 

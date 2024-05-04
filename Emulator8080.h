@@ -19,7 +19,8 @@ public:
     bool Running() const;
 
 private:
-    void unimplementedInstruction();
+    void UnimplementedInstruction();
+    uint8_t Parity(uint16_t ans) const;
 
 private:
     uint8_t a, b, c, d, e, h, l;
