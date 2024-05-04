@@ -20,6 +20,8 @@ public:
 
 private:
     void UnimplementedInstruction();
+    void setFlags(uint16_t ans);
+    void addRegister(uint8_t reg);
     uint8_t Parity(uint16_t ans) const;
 
 private:

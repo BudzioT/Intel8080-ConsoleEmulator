@@ -27,6 +27,20 @@ uint8_t Emulator8080::Parity(uint16_t ans) const {
     return (count & 0x1) == 0;
 }
 
+void Emulator8080::setFlags(uint16_t ans) {
+    cc.z = ((ans & 0xFF) == 0 ? 1 : 0);
+    cc.s = ((ans & 0x80) ? 1 : 0);
+    cc.p = Parity(ans & 0xFF);
+    cc.cy = ans > 0xFF;
+}
+
+void Emulator8080::addRegister(uint8_t reg) {
+    uint16_t ans = a + static_cast<uint16_t>(reg);
+    setFlags(ans);
+    cc.ac = ((a & 0xf) + (reg & 0xf)) > 0xf;
+    a = ans & 0xFF;
+}
+
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
     unsigned char* opCode = &memory[pc];
@@ -320,15 +334,30 @@ void Emulator8080::Emulate() {
             l = d;
             break;
 
-        case 0x80: {
-            uint16_t ans = a + static_cast<uint16_t>(b);
-            cc.z = ((ans & 0xFF) == 0 ? 1 : 0);
-            cc.s = ((ans & 0x80) ? 1 : 0);
-            cc.p = Parity(ans & 0xFF);
-            cc.cy = ans > 0xFF;
-            cc.ac = ((a & 0xf) + (b & 0xf)) > 0xf;
+        case 0x80: /* ADD B */
+            addRegister(b);
             break;
-        }
+        case 0x81: /* ADD C */
+            addRegister(c);
+            break;
+        case 0x82: /* ADD D */
+            addRegister(d);
+            break;
+        case 0x83: /* ADD E */
+            addRegister(e);
+            break;
+        case 0x84: /* ADD H */
+            addRegister(h);
+            break;
+        case 0x85: /* ADD L */
+            addRegister(l);
+            break;
+        case 0x86: /* ADD M */
+            addRegister(memory[(h << 8) | l]);
+            break;
+        case 0x87: /* ADD A */
+            addRegister(a);
+            break;
 
         /* Unimplemented */
         default:
