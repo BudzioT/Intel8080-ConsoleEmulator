@@ -13,39 +13,60 @@ bool Emulator8080::Running() const {
     return running;
 }
 
+/* Check if the number of even bits is even */
 uint8_t Emulator8080::Parity(uint16_t ans) const {
     uint8_t num = ans & 0xFF; /* Take the lower bits */
     int size = 8;
     int count = 0;
 
+    /* Check every bit. If it's 1, add to the even count */
     for (int i = 0; i < size; i++) {
         if (num & 0x1)
             ++count;
         num >>= 1;
     }
 
+    /* Return whether count is odd or even */
     return (count & 0x1) == 0;
 }
 
+/* Set the basic flags */
 void Emulator8080::setFlags(uint16_t ans) {
     cc.z = ((ans & 0xFF) == 0 ? 1 : 0);
     cc.s = ((ans & 0x80) ? 1 : 0);
     cc.p = Parity(ans & 0xFF);
-    cc.cy = ans > 0xFF;
 }
 
+/* Add a register to the accumulator */
 void Emulator8080::addRegister(uint8_t reg) {
     uint16_t ans = a + static_cast<uint16_t>(reg);
     setFlags(ans);
+    /* Set the rest of flags */
+    cc.cy = ans > 0xFF;
     cc.ac = ((a & 0xF) + (reg & 0xF)) > 0xF;
+
     a = ans & 0xFF;
 }
 
-void Emulator8080::addRegisterCarry(uint8_t reg)
-{
+/* Add a register and the carry bit to the accumulator */
+void Emulator8080::addRegisterCarry(uint8_t reg) {
     uint16_t ans = a + static_cast<uint16_t>(reg) + static_cast<uint16_t>(cc.cy);
     setFlags(ans);
-    cc.ac = ((a & 0xF) + (reg & 0xF)) > 0xF;
+    /* Set the rest of flags */
+    cc.cy = ans > 0xFF;
+    cc.ac = ((a & 0xF) + ((reg + cc.cy) & 0xF)) > 0xF;
+
+    a = ans & 0xFF;
+}
+
+/* Subtract a register from the accumulator */
+void Emulator8080::subtractRegister(uint8_t reg) {
+    uint16_t ans = static_cast<uint16_t>(a) - reg;
+    setFlags(ans);
+    /* Set the rest of flags */
+    cc.cy = a < reg;
+    cc.ac = ((a & 0xF) < (b & 0xF));
+
     a = ans & 0xFF;
 }
 
@@ -316,6 +337,31 @@ void Emulator8080::Emulate() {
             break;
         case 0x8F: /* ADC A */
             addRegisterCarry(a);
+            break;
+
+        case 0x90: /* SUB B */
+            subtractRegister(b);
+            break;
+        case 0x91: /* SUB C */
+            subtractRegister(c);
+            break;
+        case 0x92: /* SUB D */
+            subtractRegister(d);
+            break;
+        case 0x93: /* SUB E */
+            subtractRegister(e);
+            break;
+        case 0x94: /* SUB H */
+            subtractRegister(h);
+            break;
+        case 0x95: /* SUB L */
+            subtractRegister(l);
+            break;
+        case 0x96: /* SUB M */
+            subtractRegister(memory[(h << 8) | l]);
+            break;
+        case 0x97: /* SUB A */
+            subtractRegister(a);
             break;
 
         case 0x06: /* MVI B, d8 */
