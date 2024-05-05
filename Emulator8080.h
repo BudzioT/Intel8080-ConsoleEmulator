@@ -26,8 +26,9 @@ private:
     void addRegister(uint8_t reg);
     void addRegisterCarry(uint8_t reg);
     void subtractRegister(uint8_t reg);
+    void subtractRegisterBorrow(uint8_t reg);
 
-    uint8_t Parity(uint16_t ans) const;
+    static uint8_t Parity(uint16_t ans);
 
 private:
     uint8_t a, b, c, d, e, h, l;

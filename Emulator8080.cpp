@@ -14,7 +14,7 @@ bool Emulator8080::Running() const {
 }
 
 /* Check if the number of even bits is even */
-uint8_t Emulator8080::Parity(uint16_t ans) const {
+uint8_t Emulator8080::Parity(uint16_t ans) {
     uint8_t num = ans & 0xFF; /* Take the lower bits */
     int size = 8;
     int count = 0;
@@ -66,6 +66,17 @@ void Emulator8080::subtractRegister(uint8_t reg) {
     /* Set the rest of flags */
     cc.cy = a < reg;
     cc.ac = ((a & 0xF) < (b & 0xF));
+
+    a = ans & 0xFF;
+}
+
+/* Subtract a register and the carry bit from the accumulator */
+void Emulator8080::subtractRegisterBorrow(uint8_t reg) {
+    uint16_t ans = static_cast<uint16_t>(a) - static_cast<uint16_t>(reg) - cc.cy;
+    setFlags(ans);
+    /* Set the rest of flags */
+    cc.cy = a < (reg - cc.cy);
+    cc.ac = ((a & 0xF) < ((reg - cc.cy) & 0xF));
 
     a = ans & 0xFF;
 }
@@ -364,6 +375,31 @@ void Emulator8080::Emulate() {
             subtractRegister(a);
             break;
 
+        case 0x98: /* SBB B */
+            subtractRegisterBorrow(b);
+            break;
+        case 0x99: /* SBB C */
+            subtractRegisterBorrow(c);
+            break;
+        case 0x9A: /* SBB D */
+            subtractRegisterBorrow(d);
+            break;
+        case 0x9B: /* SBB E */
+            subtractRegisterBorrow(e);
+            break;
+        case 0x9C: /* SBB H */
+            subtractRegisterBorrow(h);
+            break;
+        case 0x9D: /* SBB L */
+            subtractRegisterBorrow(l);
+            break;
+        case 0x9E: /* SBB M */
+            subtractRegisterBorrow(memory[(h << 8) | l]);
+            break;
+        case 0x9F: /* SBB A */
+            subtractRegisterBorrow(a);
+            break;
+
         case 0x06: /* MVI B, d8 */
             b = opCode[1];
             ++pc;
@@ -445,6 +481,16 @@ void Emulator8080::Emulate() {
 
         case 0xCE: /* ACI, d8 */
             addRegisterCarry(opCode[1]);
+            ++pc;
+            break;
+
+        case 0xD6: /* SUI, d8 */
+            subtractRegister(opCode[1]);
+            ++pc;
+            break;
+
+        case 0xDE: /* SBI, d8 */
+            subtractRegisterBorrow(opCode[1]);
             ++pc;
             break;
 
