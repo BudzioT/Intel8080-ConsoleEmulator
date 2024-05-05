@@ -37,7 +37,15 @@ void Emulator8080::setFlags(uint16_t ans) {
 void Emulator8080::addRegister(uint8_t reg) {
     uint16_t ans = a + static_cast<uint16_t>(reg);
     setFlags(ans);
-    cc.ac = ((a & 0xf) + (reg & 0xf)) > 0xf;
+    cc.ac = ((a & 0xF) + (reg & 0xF)) > 0xF;
+    a = ans & 0xFF;
+}
+
+void Emulator8080::addRegisterCarry(uint8_t reg)
+{
+    uint16_t ans = a + static_cast<uint16_t>(reg) + static_cast<uint16_t>(cc.cy);
+    setFlags(ans);
+    cc.ac = ((a & 0xF) + (reg & 0xF)) > 0xF;
     a = ans & 0xFF;
 }
 
@@ -260,6 +268,56 @@ void Emulator8080::Emulate() {
         case 0x7F: /* MOV A, A */
             break;
 
+        case 0x80: /* ADD B */
+            addRegister(b);
+            break;
+        case 0x81: /* ADD C */
+            addRegister(c);
+            break;
+        case 0x82: /* ADD D */
+            addRegister(d);
+            break;
+        case 0x83: /* ADD E */
+            addRegister(e);
+            break;
+        case 0x84: /* ADD H */
+            addRegister(h);
+            break;
+        case 0x85: /* ADD L */
+            addRegister(l);
+            break;
+        case 0x86: /* ADD M */
+            addRegister(memory[(h << 8) | l]);
+            break;
+        case 0x87: /* ADD A */
+            addRegister(a);
+            break;
+
+        case 0x88: /* ADC B */
+            addRegisterCarry(b);
+            break;
+        case 0x89: /* ADC C */
+            addRegisterCarry(c);
+            break;
+        case 0x8A: /* ADC D */
+            addRegisterCarry(d);
+            break;
+        case 0x8B: /* ADC E */
+            addRegisterCarry(e);
+            break;
+        case 0x8C: /* ADC H */
+            addRegisterCarry(h);
+            break;
+        case 0x8D: /* ADC L */
+            addRegisterCarry(l);
+            break;
+        case 0x8E: /* ADC M */
+            addRegisterCarry(memory[(h << 8) | l]);
+            break;
+        case 0x8F: /* ADC A */
+            addRegisterCarry(a);
+            break;
+
         case 0x06: /* MVI B, d8 */
             b = opCode[1];
             ++pc;
@@ -334,29 +392,14 @@ void Emulator8080::Emulate() {
             l = d;
             break;
 
-        case 0x80: /* ADD B */
-            addRegister(b);
+        case 0xC6: /* ADI, d8 */
+            addRegister(opCode[1]);
+            ++pc;
             break;
-        case 0x81: /* ADD C */
-            addRegister(c);
-            break;
-        case 0x82: /* ADD D */
-            addRegister(d);
-            break;
-        case 0x83: /* ADD E */
-            addRegister(e);
-            break;
-        case 0x84: /* ADD H */
-            addRegister(h);
-            break;
-        case 0x85: /* ADD L */
-            addRegister(l);
-            break;
-        case 0x86: /* ADD M */
-            addRegister(memory[(h << 8) | l]);
-            break;
-        case 0x87: /* ADD A */
-            addRegister(a);
+
+        case 0xCE: /* ACI, d8 */
+            addRegisterCarry(opCode[1]);
+            ++pc;
             break;
 
         /* Unimplemented */
