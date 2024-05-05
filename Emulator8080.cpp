@@ -91,6 +91,15 @@ void Emulator8080::incrementRegister(uint8_t& reg) {
     reg = ans & 0xFF;
 }
 
+/* Increment the register pair */
+void Emulator8080::incrementRegPair(uint8_t& reg1, uint8_t& reg2) {
+    uint16_t pair = ((reg1 << 8) | reg2);
+    uint16_t ans = pair + 1;
+
+    reg1 = (ans & 0xFF00);
+    reg2 = (ans & 0xFF);
+}
+
 /* Decrement the register */
 void Emulator8080::decrementRegister(uint8_t& reg) {
     uint16_t ans = static_cast<uint16_t>(reg) - 1;
@@ -99,6 +108,15 @@ void Emulator8080::decrementRegister(uint8_t& reg) {
     cc.ac = (reg & 0xF) > 1;
 
     reg = ans & 0xFF;
+}
+
+/* Decrement the register pair */
+void Emulator8080::decrementRegPair(uint8_t& reg1, uint8_t& reg2) {
+    uint16_t pair = ((reg1 << 8) | reg2);
+    uint16_t ans = pair - 1;
+
+    reg1 = (ans & 0xFF00);
+    reg2 = (ans & 0xFF);
 }
 
 /* Emulate the 8080 using saved memory buffer */
@@ -512,6 +530,32 @@ void Emulator8080::Emulate() {
         case 0xDE: /* SBI, d8 */
             subtractRegisterBorrow(opCode[1]);
             ++pc;
+            break;
+
+        case 0x03: /* INX B */
+            incrementRegPair(b, c);
+            break;
+        case 0x13: /* INX D */
+            incrementRegPair(d, e);
+            break;
+        case 0x23: /* INX H */
+            incrementRegPair(h, l);
+            break;
+        case 0x33: /* INX SP */
+            ++sp;
+            break;
+
+        case 0x0B: /* DCX B */
+            decrementRegPair(b, c);
+            break;
+        case 0x1B: /* DCX D */
+            decrementRegPair(d, e);
+            break;
+        case 0x2B: /* DCX H */
+            decrementRegPair(h, l);
+            break;
+        case 0x3B: /* DCX SP */
+            --sp;
             break;
 
         case 0x04: /* INR B */

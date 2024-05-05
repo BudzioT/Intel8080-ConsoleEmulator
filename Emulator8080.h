@@ -29,7 +29,9 @@ private:
     void subtractRegisterBorrow(uint8_t reg);
 
     void incrementRegister(uint8_t& reg);
+    static void incrementRegPair(uint8_t& reg1, uint8_t& reg2);
     void decrementRegister(uint8_t& reg);
+    static void decrementRegPair(uint8_t& reg1, uint8_t& reg2);
 
     static uint8_t Parity(uint16_t ans);
 
