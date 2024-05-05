@@ -81,6 +81,26 @@ void Emulator8080::subtractRegisterBorrow(uint8_t reg) {
     a = ans & 0xFF;
 }
 
+/* Increment the register */
+void Emulator8080::incrementRegister(uint8_t& reg) {
+    uint16_t ans = static_cast<uint16_t>(reg) + 1;
+    setFlags(ans);
+    /* Set the rest of flags */
+    cc.ac = ((reg & 0xF) + 1) > 0xF;
+
+    reg = ans & 0xFF;
+}
+
+/* Decrement the register */
+void Emulator8080::decrementRegister(uint8_t& reg) {
+    uint16_t ans = static_cast<uint16_t>(reg) - 1;
+    setFlags(ans);
+    /* Set the rest of flags */
+    cc.ac = (reg & 0xF) > 1;
+
+    reg = ans & 0xFF;
+}
+
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
     unsigned char* opCode = &memory[pc];
@@ -492,6 +512,56 @@ void Emulator8080::Emulate() {
         case 0xDE: /* SBI, d8 */
             subtractRegisterBorrow(opCode[1]);
             ++pc;
+            break;
+
+        case 0x04: /* INR B */
+            incrementRegister(b);
+            break;
+        case 0x0C: /* INR C */
+            incrementRegister(c);
+            break;
+        case 0x14: /* INR D */
+            incrementRegister(d);
+            break;
+        case 0x1C: /* INR E */
+            incrementRegister(e);
+            break;
+        case 0x24: /* INR H */
+            incrementRegister(h);
+            break;
+        case 0x2C: /* INR L */
+            incrementRegister(l);
+            break;
+        case 0x34: /* INR M */
+            incrementRegister(memory[(h << 8) | l]);
+            break;
+        case 0x3C: /* INR A */
+            incrementRegister(a);
+            break;
+
+        case 0x05: /* DCR B */
+            decrementRegister(b);
+            break;
+        case 0x0D: /* DCR C */
+            decrementRegister(c);
+            break;
+        case 0x15: /* DCR D */
+            decrementRegister(d);
+            break;
+        case 0x1D: /* DCR E */
+            decrementRegister(e);
+            break;
+        case 0x25: /* DCR H */
+            decrementRegister(h);
+            break;
+        case 0x2D: /* DCR L */
+            decrementRegister(l);
+            break;
+        case 0x35: /* DCR M */
+            decrementRegister(memory[(h << 8) | l]);
+            break;
+        case 0x3D: /* DCR A */
+            decrementRegister(a);
             break;
 
         /* Unimplemented */
