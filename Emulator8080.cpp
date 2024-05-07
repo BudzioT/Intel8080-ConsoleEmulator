@@ -147,6 +147,27 @@ void Emulator8080::decimalAdjustAcc() {
     a = ans & 0xFF;
 }
 
+/* Set the accumulator to the result of logical AND with a register */
+void Emulator8080::logicalAndRegister(uint8_t reg) {
+    uint16_t ans = a & reg;
+    setFlags(ans);
+    /* Reset the Carry flags */
+    cc.cy = 0;
+    cc.ac = 0;
+    a = ans;
+}
+
+/* Set the accumulator to the result of logical XOR with a register */
+void Emulator8080::logicalXOrRegister(uint8_t reg) {
+    uint16_t ans = a ^ reg;
+    setFlags(ans);
+    /* Reset the Carry flags */
+    cc.cy = 0;
+    cc.ac = 0;
+    a = ans;
+}
+
+
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
     unsigned char* opCode = &memory[pc];
@@ -466,6 +487,56 @@ void Emulator8080::Emulate() {
             subtractRegisterBorrow(a);
             break;
 
+        case 0xA0: /* ANA B */
+            logicalAndRegister(b);
+            break;
+        case 0xA1: /* ANA C */
+            logicalAndRegister(c);
+            break;
+        case 0xA2: /* ANA D */
+            logicalAndRegister(d);
+            break;
+        case 0xA3: /* ANA E */
+            logicalAndRegister(e);
+            break;
+        case 0xA4: /* ANA H */
+            logicalAndRegister(h);
+            break;
+        case 0xA5: /* ANA L */
+            logicalAndRegister(l);
+            break;
+        case 0xA6: /* ANA M */
+            logicalAndRegister(memory[(h << 8) | l]);
+            break;
+        case 0xA7: /* ANA A */
+            logicalAndRegister(a);
+            break;
+
+        case 0xA8: /* XRA B */
+            logicalXOrRegister(b);
+            break;
+        case 0xA9: /* XRA C */
+            logicalXOrRegister(c);
+            break;
+        case 0xAA: /* XRA D */
+            logicalXOrRegister(d);
+            break;
+        case 0xAB: /* XRA E */
+            logicalXOrRegister(e);
+            break;
+        case 0xAC: /* XRA H */
+            logicalXOrRegister(h);
+            break;
+        case 0xAD: /* XRA L */
+            logicalXOrRegister(l);
+            break;
+        case 0xAE: /* XRA M */
+            logicalXOrRegister(memory[(h << 8) | l]);
+            break;
+        case 0xAF: /* XRA A */
+            logicalXOrRegister(a);
+            break;
+
         case 0x06: /* MVI B, d8 */
             b = opCode[1];
             ++pc;
@@ -651,6 +722,16 @@ void Emulator8080::Emulate() {
 
         case 0x27: /* DAA */
             decimalAdjustAcc();
+            break;
+
+        case 0xE6: /* ANI, d8 */
+            logicalAndRegister(opCode[1]);
+            ++pc;
+            break;
+
+        case 0xEE: /* XRI, d8 */
+            logicalAndRegister(opCode[1]);
+            ++pc;
             break;
 
         /* Unimplemented */
