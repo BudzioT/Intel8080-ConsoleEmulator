@@ -36,6 +36,8 @@ private:
 
     void logicalAndRegister(uint8_t reg);
     void logicalXOrRegister(uint8_t reg);
+    void logicalOrRegister(uint8_t reg);
+    void compareRegister(uint8_t reg);
 
     static uint8_t Parity(uint16_t ans);
 

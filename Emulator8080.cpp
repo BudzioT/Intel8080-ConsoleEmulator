@@ -167,6 +167,25 @@ void Emulator8080::logicalXOrRegister(uint8_t reg) {
     a = ans;
 }
 
+/* Set the accumulator to the result of logical OR with a register */
+void Emulator8080::logicalOrRegister(uint8_t reg) {
+    uint16_t ans = a | reg;
+    setFlags(ans);
+    /* Reset the Carry flags */
+    cc.cy = 0;
+    cc.ac = 0;
+    a = ans;
+}
+
+/* Compare the accumulator with a register, set flags */
+void Emulator8080::compareRegister(uint8_t reg) {
+    uint16_t ans = a - reg;
+    setFlags(ans);
+    /* Set the rest of flags */
+    cc.cy = a < reg;
+    cc.ac = ((a & 0x0F) < (reg & 0x0F));
+}
+
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
@@ -537,6 +556,56 @@ void Emulator8080::Emulate() {
             logicalXOrRegister(a);
             break;
 
+        case 0xB0: /* ORA B */
+            logicalOrRegister(b);
+            break;
+        case 0xB1: /* ORA C */
+            logicalOrRegister(c);
+            break;
+        case 0xB2: /* ORA D */
+            logicalOrRegister(d);
+            break;
+        case 0xB3: /* ORA E */
+            logicalOrRegister(e);
+            break;
+        case 0xB4: /* ORA H */
+            logicalOrRegister(h);
+            break;
+        case 0xB5: /* ORA L */
+            logicalOrRegister(l);
+            break;
+        case 0xB6: /* ORA M */
+            logicalOrRegister(memory[(h << 8) | l]);
+            break;
+        case 0xB7: /* ORA A */
+            logicalOrRegister(a);
+            break;
+
+        case 0xB8: /* CMP B */
+            compareRegister(b);
+            break;
+        case 0xB9: /* CMP C */
+            compareRegister(c);
+            break;
+        case 0xBA: /* CMP D */
+            compareRegister(d);
+            break;
+        case 0xBB: /* CMP E */
+            compareRegister(e);
+            break;
+        case 0xBC: /* CMP H */
+            compareRegister(h);
+            break;
+        case 0xBD: /* CMP L */
+            compareRegister(l);
+            break;
+        case 0xBE: /* CMP M */
+            compareRegister(memory[(h << 8) | l]);
+            break;
+        case 0xBF: /* CMP A */
+            compareRegister(a);
+            break;
+
         case 0x06: /* MVI B, d8 */
             b = opCode[1];
             ++pc;
@@ -730,7 +799,17 @@ void Emulator8080::Emulate() {
             break;
 
         case 0xEE: /* XRI, d8 */
-            logicalAndRegister(opCode[1]);
+            logicalXOrRegister(opCode[1]);
+            ++pc;
+            break;
+
+        case 0xF6: /* ORI, d8 */
+            logicalOrRegister(opCode[1]);
+            ++pc;
+            break;
+
+        case 0xFE: /* CPI, d8 */
+            compareRegister(opCode[1]);
             ++pc;
             break;
 
