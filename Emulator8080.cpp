@@ -96,7 +96,7 @@ void Emulator8080::incrementRegPair(uint8_t& reg1, uint8_t& reg2) {
     uint16_t pair = ((reg1 << 8) | reg2);
     uint16_t ans = pair + 1;
 
-    reg1 = (ans & 0xFF00);
+    reg1 = (ans & 0xFF00) >> 8;
     reg2 = (ans & 0xFF);
 }
 
@@ -115,8 +115,36 @@ void Emulator8080::decrementRegPair(uint8_t& reg1, uint8_t& reg2) {
     uint16_t pair = ((reg1 << 8) | reg2);
     uint16_t ans = pair - 1;
 
-    reg1 = (ans & 0xFF00);
+    reg1 = (ans & 0xFF00) >> 8;
     reg2 = (ans & 0xFF);
+}
+
+/* Add a register pair to the H and L registers */
+void Emulator8080::addPairToHL(uint8_t reg1, uint8_t reg2) {
+    uint16_t pair = ((reg1 << 8) | reg2);
+    uint16_t hl = ((h << 8) | l);
+    uint32_t ans = pair + hl;
+
+    cc.cy = ans > 0xFFFF;
+
+    h = (ans & 0xFF00) >> 8;
+    l = (ans & 0xFF);
+}
+
+/* Decimal adjust the accumulator */
+void Emulator8080::decimalAdjustAcc() {
+    uint16_t ans = a;
+    if ((a & 0x0F) > 9 || cc.ac)
+        ans += 6;
+
+    if ((ans & 0xF0) > 0x90 || cc.cy)
+        ans += 0x60;
+
+    setFlags(ans);
+    cc.cy = ans > 0xFF;
+    cc.ac = ((a & 0x0F) > 9);
+
+    a = ans & 0xFF;
 }
 
 /* Emulate the 8080 using saved memory buffer */
@@ -545,6 +573,19 @@ void Emulator8080::Emulate() {
             ++sp;
             break;
 
+        case 0x09: /* DAD B */
+            addPairToHL(b, c);
+            break;
+        case 0x19: /* DAD D */
+            addPairToHL(d, e);
+            break;
+        case 0x29: /* DAD H */
+            addPairToHL(h, l);
+            break;
+        case 0x39: /* DAD SP */
+            addPairToHL((sp & 0xFF00) >> 8, sp & 0xFF);
+            break;
+
         case 0x0B: /* DCX B */
             decrementRegPair(b, c);
             break;
@@ -606,6 +647,10 @@ void Emulator8080::Emulate() {
             break;
         case 0x3D: /* DCR A */
             decrementRegister(a);
+            break;
+
+        case 0x27: /* DAA */
+            decimalAdjustAcc();
             break;
 
         /* Unimplemented */

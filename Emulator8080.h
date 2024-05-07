@@ -27,6 +27,8 @@ private:
     void addRegisterCarry(uint8_t reg);
     void subtractRegister(uint8_t reg);
     void subtractRegisterBorrow(uint8_t reg);
+    void addPairToHL(uint8_t reg1, uint8_t reg2);
+    void decimalAdjustAcc();
 
     void incrementRegister(uint8_t& reg);
     static void incrementRegPair(uint8_t& reg1, uint8_t& reg2);
