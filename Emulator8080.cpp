@@ -869,6 +869,61 @@ void Emulator8080::Emulate() {
             cc.cy = ~cc.cy;
             break;
 
+        /* JMP, addr */
+        case 0xC3:
+        case 0xCB:
+            pc = ((opCode[2] << 8) | opCode[1]);
+            break;
+
+        case 0xC2: /* JNZ, addr */
+            if (cc.z == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xCA: /* JZ, addr */
+            if (cc.z == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xD2: /* JNC, addr */
+            if (cc.cy == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xDA: /* JC, addr */
+            if (cc.cy == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xE2: /* JPO, addr */
+            if (cc.p == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xEA: /* JPE, addr */
+            if (cc.p == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xF2: /* JP, addr */
+            if (cc.s == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xFA: /* JM, addr */
+            if (cc.s == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+
         /* Unimplemented */
         default:
             UnimplementedInstruction();
