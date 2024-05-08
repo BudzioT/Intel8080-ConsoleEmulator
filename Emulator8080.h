@@ -38,6 +38,10 @@ private:
     void logicalXOrRegister(uint8_t reg);
     void logicalOrRegister(uint8_t reg);
     void compareRegister(uint8_t reg);
+    void rotateLeft();
+    void rotateLeftCarry();
+    void rotateRight();
+    void rotateRightCarry();
 
     static uint8_t Parity(uint16_t ans);
 

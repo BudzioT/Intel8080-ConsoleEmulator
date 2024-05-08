@@ -186,6 +186,36 @@ void Emulator8080::compareRegister(uint8_t reg) {
     cc.ac = ((a & 0x0F) < (reg & 0x0F));
 }
 
+/* Rotate content of the accumulator one place left, update the Carry flag */
+void Emulator8080::rotateLeft() {
+    uint8_t oldVal = a;
+    a = (((oldVal & 0x80) >> 7) | (oldVal << 1));
+    cc.cy = (a & 1);
+}
+
+/* Rotate content of the accumulator one place left,
+ * set the LSB bit to the Carry flag, update it */
+void Emulator8080::rotateLeftCarry() {
+    uint8_t oldVal = a;
+    a = ((cc.cy >> 7) | (oldVal << 1));
+    cc.cy = (oldVal & 0x80);
+}
+
+/* Rotate content of the accumulator one place right, update the Carry flag */
+void Emulator8080::rotateRight() {
+    uint8_t oldVal = a;
+    a = (((oldVal & 1) << 7) | (oldVal >> 1));
+    cc.cy = (a & 0x80);
+}
+
+/* Rotate content of the accumulator one place right,
+ * set the MSB to the Carry flag, update it */
+void Emulator8080::rotateRightCarry() {
+    uint8_t oldVal = a;
+    a = ((cc.cy << 7) | (oldVal >> 1));
+    cc.cy = (oldVal & 1);
+}
+
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
@@ -811,6 +841,20 @@ void Emulator8080::Emulate() {
         case 0xFE: /* CPI, d8 */
             compareRegister(opCode[1]);
             ++pc;
+            break;
+
+        case 0x07: /* RLC */
+            rotateLeft();
+            break;
+        case 0x0F: /* RRC */
+            rotateRight();
+            break;
+
+        case 0x17: /* RAL */
+            rotateLeftCarry();
+            break;
+        case 0x1F: /* RAR */
+            rotateRightCarry();
             break;
 
         /* Unimplemented */
