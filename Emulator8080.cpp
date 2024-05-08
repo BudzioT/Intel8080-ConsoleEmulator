@@ -216,6 +216,14 @@ void Emulator8080::rotateRightCarry() {
     cc.cy = (oldVal & 1);
 }
 
+void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
+    uint16_t nextIns = pc + 3;
+    memory[sp - 1] = ((nextIns >> 8) & 0xFF);
+    memory[sp - 2] = (nextIns & 0xFF);
+    sp -= 2;
+    pc = ((byte2 << 8) | byte1);
+}
+
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
@@ -920,6 +928,63 @@ void Emulator8080::Emulate() {
         case 0xFA: /* JM, addr */
             if (cc.s == 1)
                 pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+
+        /* CALL, addr */
+        case 0xCD:
+        case 0xDD:
+        case 0xED:
+        case 0xFD:
+            call(opCode[1], opCode[2]);
+            break;
+
+        case 0xC4: /* CNZ, addr */
+            if (cc.z == 0)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xCC: /* CZ, addr */
+            if (cc.z == 1)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xD4:  /* CNC, addr */
+            if (cc.cy == 0)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xDC:  /* CC, addr */
+            if (cc.cy == 1)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xE4: /* CPO, addr */
+            if (cc.p == 0)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xEC: /* CPE, addr */
+            if (cc.p == 1)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xF4: /* CP, addr */
+            if (cc.s == 0)
+                call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xFC: /* CM, addr */
+            if (cc.s == 1)
+                call(opCode[1], opCode[2]);
             else
                 pc += 2;
             break;
