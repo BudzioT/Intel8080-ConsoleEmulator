@@ -857,6 +857,18 @@ void Emulator8080::Emulate() {
             rotateRightCarry();
             break;
 
+        case 0x2F: /* CMA */
+            a = ~a;
+            break;
+
+        case 0x37: /* STC */
+            cc.cy = 1;
+            break;
+
+        case 0x3F: /* CMC */
+            cc.cy = ~cc.cy;
+            break;
+
         /* Unimplemented */
         default:
             UnimplementedInstruction();
