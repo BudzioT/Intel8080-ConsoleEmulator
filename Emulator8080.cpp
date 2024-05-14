@@ -224,6 +224,11 @@ void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
     pc = ((byte2 << 8) | byte1);
 }
 
+void Emulator8080::ret() {
+    pc = ((memory[sp + 1] << 8) | memory[sp]);
+    sp += 2;
+}
+
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
@@ -987,6 +992,45 @@ void Emulator8080::Emulate() {
                 call(opCode[1], opCode[2]);
             else
                 pc += 2;
+            break;
+
+            /* RET */
+        case 0xC9:
+        case 0xD9:
+            ret();
+            break;
+
+        case 0xC0: /* RNZ */
+            if (cc.z == 0)
+                ret();
+            break;
+        case 0xC8: /* RZ */
+            if (cc.z == 1)
+                ret();
+            break;
+        case 0xD0: /* RNC */
+            if (cc.cy == 0)
+                ret();
+            break;
+        case 0xD8: /* RC */
+            if (cc.cy == 1)
+                ret();
+            break;
+        case 0xE0: /* RPO */
+            if (cc.p == 0)
+                ret();
+            break;
+        case 0xE8: /* RPE */
+            if (cc.p == 1)
+                ret();
+            break;
+        case 0xF0: /* RP */
+            if (cc.s == 0)
+                ret();
+            break;
+        case 0xF8: /* RM */
+            if (cc.s == 1)
+                ret();
             break;
 
         /* Unimplemented */

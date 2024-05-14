@@ -44,6 +44,7 @@ private:
     void rotateRightCarry();
 
     void call(uint8_t byte1, uint8_t byte2);
+    void ret();
 
     static uint8_t Parity(uint16_t ans);
 
