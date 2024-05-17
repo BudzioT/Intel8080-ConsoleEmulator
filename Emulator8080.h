@@ -45,6 +45,7 @@ private:
 
     void call(uint8_t byte1, uint8_t byte2);
     void ret();
+    void rst(int nnn);
 
     static uint8_t Parity(uint16_t ans);
 

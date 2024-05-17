@@ -216,6 +216,7 @@ void Emulator8080::rotateRightCarry() {
     cc.cy = (oldVal & 1);
 }
 
+/* Put the next instruction bits onto stack, jump to the specified location */
 void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
     uint16_t nextIns = pc + 3;
     memory[sp - 1] = ((nextIns >> 8) & 0xFF);
@@ -224,9 +225,20 @@ void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
     pc = ((byte2 << 8) | byte1);
 }
 
+/* Jump to the memory specified by the stack pointer */
 void Emulator8080::ret() {
     pc = ((memory[sp + 1] << 8) | memory[sp]);
     sp += 2;
+}
+
+/* Put the next instruction bits onto stack, jump to the address at 8 times specified
+ * bits */
+void Emulator8080::rst(int nnn) {
+    uint16_t nextIns = pc + 1;
+    memory[sp - 1] = ((nextIns >> 8) & 0xFF);
+    memory[sp - 2] = (nextIns & 0XFF);
+    sp -= 2;
+    pc = 8 * nnn;
 }
 
 
@@ -1031,6 +1043,31 @@ void Emulator8080::Emulate() {
         case 0xF8: /* RM */
             if (cc.s == 1)
                 ret();
+            break;
+
+        case 0xC7: /* RST 0 */
+            rst(0x00);
+            break;
+        case 0xCF: /* RST 1 */
+            rst(0x08);
+            break;
+        case 0xD7: /* RST 2 */
+            rst(0x10);
+            break;
+        case 0xDF: /* RST 3 */
+            rst(0x18);
+            break;
+        case 0xE7: /* RST 4 */
+            rst(0x20);
+            break;
+        case 0xEF: /* RST 5 */
+            rst(0x28);
+            break;
+        case 0xF7: /* RST 6 */
+            rst(0x30);
+            break;
+        case 0xFF: /* RST 7 */
+            rst(0x38);
             break;
 
         /* Unimplemented */
