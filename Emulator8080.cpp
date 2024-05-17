@@ -1070,6 +1070,10 @@ void Emulator8080::Emulate() {
             rst(0x38);
             break;
 
+        case 0xE9: /* PCHL */
+            pc = ((h << 8) | l);
+            break;
+
         /* Unimplemented */
         default:
             UnimplementedInstruction();
