@@ -47,6 +47,11 @@ private:
     void ret();
     void rst(int nnn);
 
+    void pushPair(uint8_t reg1, uint8_t reg2);
+    void pushPSW();
+    void popPair(uint8_t& reg1, uint8_t& reg2);
+    void popPSW();
+
     static uint8_t Parity(uint16_t ans);
 
 private:

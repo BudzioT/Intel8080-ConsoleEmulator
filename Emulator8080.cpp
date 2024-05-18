@@ -231,14 +231,50 @@ void Emulator8080::ret() {
     sp += 2;
 }
 
-/* Put the next instruction bits onto stack, jump to the address at 8 times specified
- * bits */
+/* Put the next instruction bits onto stack, jump to the address at 8 times specified bits */
 void Emulator8080::rst(int nnn) {
     uint16_t nextIns = pc + 1;
     memory[sp - 1] = ((nextIns >> 8) & 0xFF);
     memory[sp - 2] = (nextIns & 0XFF);
     sp -= 2;
     pc = 8 * nnn;
+}
+
+/* Push the given registers onto the stack, decrement stack pointer */
+void Emulator8080::pushPair(uint8_t reg1, uint8_t reg2) {
+    memory[sp - 1] = reg1;
+    memory[sp - 2] = reg2;
+    sp -= 2;
+}
+
+/* Push the A register and the Processor Status Word onto the stack, decrement stack pointer */
+void Emulator8080::pushPSW() {
+    memory[sp - 1] = a;
+
+    /* Set the processor status word */
+    uint8_t psw = (cc.cy | 0x02 | (cc.p << 2) | (cc.ac << 4) | (cc.z << 6) | (cc.s << 7));
+    memory[sp - 2] = psw;
+    sp -= 2;
+}
+
+/* Pop the memory pointed by stack pointer onto the register pair, increment the stack pointer */
+void Emulator8080::popPair(uint8_t& reg1, uint8_t& reg2) {
+    reg2 = memory[sp];
+    reg1 = memory[sp + 1];
+    sp += 2;
+}
+
+/* Pop the memory pointed by stack pointer onto the flags and the A register,
+ * increment the stack pointer  */
+void Emulator8080::popPSW() {
+    cc.cy = (memory[sp] & 0x01);
+    cc.p = (memory[sp] & 0x04);
+    cc.ac = (memory[sp] & 0x10);
+    cc.z = (memory[sp] & 0x40);
+    cc.s = (memory[sp] & 0x80);
+
+    a = memory[sp + 1];
+    sp += 2;
 }
 
 
@@ -1072,6 +1108,32 @@ void Emulator8080::Emulate() {
 
         case 0xE9: /* PCHL */
             pc = ((h << 8) | l);
+            break;
+
+        case 0xC1: /* POP B */
+            popPair(b, c);
+            break;
+        case 0xD1: /* POP D */
+            popPair(d, e);
+            break;
+        case 0xE1: /* POP H */
+            popPair(h, l);
+            break;
+        case 0xF1: /* POP PSW */
+            popPSW();
+            break;
+
+        case 0xC5: /* PUSH B */
+            pushPair(b, c);
+            break;
+        case 0xD5: /* PUSH D */
+            pushPair(d, e);
+            break;
+        case 0xE5: /* PUSH H */
+            pushPair(h, l);
+            break;
+        case 0xF5: /* PUSH PSW */
+            pushPSW();
             break;
 
         /* Unimplemented */
