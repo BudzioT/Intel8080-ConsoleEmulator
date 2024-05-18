@@ -277,6 +277,17 @@ void Emulator8080::popPSW() {
     sp += 2;
 }
 
+/* Exchange stack top with register H and L */
+void Emulator8080::xthl() {
+    uint8_t temp = l;
+    l = memory[sp];
+    memory[sp] = temp;
+
+    temp = h;
+    h = memory[sp + 1];
+    memory[sp + 1] = temp;
+}
+
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
@@ -1134,6 +1145,14 @@ void Emulator8080::Emulate() {
             break;
         case 0xF5: /* PUSH PSW */
             pushPSW();
+            break;
+
+        case 0xE3: /* XTHL */
+            xthl();
+            break;
+
+        case 0xF9: /* SPHL */
+            sp = ((h << 8) | l);
             break;
 
         /* Unimplemented */

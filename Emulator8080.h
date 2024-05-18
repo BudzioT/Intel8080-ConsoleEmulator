@@ -52,6 +52,8 @@ private:
     void popPair(uint8_t& reg1, uint8_t& reg2);
     void popPSW();
 
+    void xthl();
+
     static uint8_t Parity(uint16_t ans);
 
 private:
