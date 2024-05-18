@@ -1,6 +1,7 @@
 #include "Emulator8080.h"
 
 #include <cstdio>
+#include <cstdlib>
 
 /* Handle unimplemented instructions */
 void Emulator8080::UnimplementedInstruction() {
@@ -1153,6 +1154,22 @@ void Emulator8080::Emulate() {
 
         case 0xF9: /* SPHL */
             sp = ((h << 8) | l);
+            break;
+
+        case 0xDB: /* IN, d8 */
+        case 0xD3: /* OUT, d8 */
+            ++pc;
+            break;
+
+        case 0xFB: /* EI */
+            intEnable = 1;
+            break;
+        case 0xF3: /* DI */
+            intEnable = 0;
+            break;
+
+        case 0x76: /* HLT */
+            std::exit(0);
             break;
 
         /* Unimplemented */
