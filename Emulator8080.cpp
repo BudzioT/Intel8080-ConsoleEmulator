@@ -3,15 +3,15 @@
 #include <cstdio>
 #include <cstdlib>
 
+
+Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0), pc(0),
+    intEnable(0), memory(nullptr)
+{ }
+
 /* Handle unimplemented instructions */
 void Emulator8080::UnimplementedInstruction() {
     printf("Error: Unimplemented Instruction!");
-    running = false;
-}
-
-/* Is the emulator running? */
-bool Emulator8080::Running() const {
-    return running;
+    std::exit(1);
 }
 
 /* Check if the number of even bits is even */
@@ -311,20 +311,197 @@ void Emulator8080::Emulate() {
             c = opCode[1];
             pc += 2;
             break;
+        case 0x02: /* STAX B */
+            memory[(b << 8) | c] = a;
+            break;
+        case 0x03: /* INX B */
+            incrementRegPair(b, c);
+            break;
+        case 0x04: /* INR B */
+            incrementRegister(b);
+            break;
+        case 0x05: /* DCR B */
+            decrementRegister(b);
+            break;
+        case 0x06: /* MVI B, d8 */
+            b = opCode[1];
+            ++pc;
+            break;
+        case 0x07: /* RLC */
+            rotateLeft();
+            break;
+        case 0x09: /* DAD B */
+            addPairToHL(b, c);
+            break;
+        case 0x0A: /* LDAX B */
+            a = memory[(b << 8) | c];
+            break;
+        case 0x0B: /* DCX B */
+            decrementRegPair(b, c);
+            break;
+        case 0x0C: /* INR C */
+            incrementRegister(c);
+            break;
+        case 0x0D: /* DCR C */
+            decrementRegister(c);
+            break;
+        case 0x0E: /* MVI C, d8 */
+            c = opCode[1];
+            ++pc;
+            break;
+        case 0x0F: /* RRC */
+            rotateRight();
+            break;
+
+
         case 0x11: /* LXI D, d16 */
             d = opCode[2];
             e = opCode[1];
             pc += 2;
             break;
+        case 0x12: /* STAX D */
+            memory[(d << 8) | c] = a;
+            break;
+        case 0x13: /* INX D */
+            incrementRegPair(d, e);
+            break;
+        case 0x14: /* INR D */
+            incrementRegister(d);
+            break;
+        case 0x15: /* DCR D */
+            decrementRegister(d);
+            break;
+        case 0x16: /* MVI D, d8 */
+            d = opCode[1];
+            ++pc;
+            break;
+        case 0x17: /* RAL */
+            rotateLeftCarry();
+            break;
+        case 0x19: /* DAD D */
+            addPairToHL(d, e);
+            break;
+        case 0x1A: /* LDAX D */
+            b = memory[(d << 8) | e];
+            break;
+        case 0x1B: /* DCX D */
+            decrementRegPair(d, e);
+            break;
+        case 0x1C: /* INR E */
+            incrementRegister(e);
+            break;
+        case 0x1D: /* DCR E */
+            decrementRegister(e);
+            break;
+        case 0x1E: /* MVI E, d8 */
+            e = opCode[1];
+            ++pc;
+            break;
+        case 0x1F: /* RAR */
+            rotateRightCarry();
+            break;
+
+
         case 0x21: /* LXI H, d16 */
             h = opCode[2];
             l = opCode[1];
             pc += 2;
             break;
+        case 0x22: /* SHLD addr */
+            memory[(opCode[2] << 8) | opCode[1]] = l;
+            memory[((opCode[2] << 8) | opCode[1]) + 1] = h;
+            pc += 2;
+            break;
+        case 0x23: /* INX H */
+            incrementRegPair(h, l);
+            break;
+        case 0x24: /* INR H */
+            incrementRegister(h);
+            break;
+        case 0x25: /* DCR H */
+            decrementRegister(h);
+            break;
+        case 0x26: /* MVI H, d8 */
+            h = opCode[1];
+            ++pc;
+            break;
+        case 0x27: /* DAA */
+            decimalAdjustAcc();
+            break;
+        case 0x29: /* DAD H */
+            addPairToHL(h, l);
+            break;
+        case 0x2A: /* LHLD addr */
+            l = memory[(opCode[2] << 8) | opCode[1]];
+            h = memory[((opCode[2] << 8) | opCode[1]) + 1];
+            pc += 2;
+            break;
+        case 0x2B: /* DCX H */
+            decrementRegPair(h, l);
+            break;
+        case 0x2C: /* INR L */
+            incrementRegister(l);
+            break;
+        case 0x2D: /* DCR L */
+            decrementRegister(l);
+            break;
+        case 0x2E: /* MVI L, d8 */
+            l = opCode[1];
+            ++pc;
+            break;
+        case 0x2F: /* CMA */
+            a = ~a;
+            break;
+
+
         case 0x31: /* LXI SP, d16 */
             sp = (opCode[2] << 8) | opCode[1];
             pc += 2;
             break;
+        case 0x32: /* STA addr */
+            memory[(opCode[2] << 8) | opCode[1]] = a;
+            pc += 2;
+            break;
+        case 0x33: /* INX SP */
+            ++sp;
+            break;
+        case 0x34: /* INR M */
+            incrementRegister(memory[(h << 8) | l]);
+            break;
+        case 0x35: /* DCR M */
+            decrementRegister(memory[(h << 8) | l]);
+            break;
+        case 0x36: /* MVI M, d8 */
+            memory[(h << 8) | l] = opCode[1];
+            ++pc;
+            break;
+        case 0x37: /* STC */
+            cc.cy = 1;
+            break;
+        case 0x39: /* DAD SP */
+            addPairToHL((sp & 0xFF00) >> 8, sp & 0xFF);
+            break;
+        case 0x3A: /* LDA addr */
+            a = memory[(opCode[2] << 8) | opCode[1]];
+            pc += 2;
+            break;
+        case 0x3B: /* DCX SP */
+            --sp;
+            break;
+        case 0x3C: /* INR A */
+            incrementRegister(a);
+            break;
+        case 0x3D: /* DCR A */
+            decrementRegister(a);
+            break;
+        case 0x3E: /* MVI A, d8 */
+            a = opCode[1];
+            ++pc;
+            break;
+        case 0x3F: /* CMC */
+            cc.cy = ~cc.cy;
+            break;
+
 
         case 0x40: /* MOV B, B */
             break;
@@ -372,6 +549,8 @@ void Emulator8080::Emulate() {
         case 0x4F: /* MOV C, A */
             c = a;
             break;
+
+
         case 0x50: /* MOV D, B */
             d = b;
             break;
@@ -418,6 +597,8 @@ void Emulator8080::Emulate() {
         case 0x5F: /* MOV E, A */
             e = a;
             break;
+
+
         case 0x60: /* MOV H, B */
             h = b;
             break;
@@ -464,6 +645,8 @@ void Emulator8080::Emulate() {
         case 0x6F: /* MOV L, A */
             l = a;
             break;
+
+
         case 0x70: /* MOV M, B */
             memory[(h << 8) | l] = b;
             break;
@@ -482,6 +665,8 @@ void Emulator8080::Emulate() {
         case 0x75: /* MOV M, L */
             memory[(h << 8) | l] = l;
             break;
+        case 0x76: /* HLT */
+            std::exit(0);
         case 0x77: /* MOV M, A */
             memory[(h << 8) | l] = a;
             break;
@@ -509,6 +694,7 @@ void Emulator8080::Emulate() {
         case 0x7F: /* MOV A, A */
             break;
 
+
         case 0x80: /* ADD B */
             addRegister(b);
             break;
@@ -533,7 +719,6 @@ void Emulator8080::Emulate() {
         case 0x87: /* ADD A */
             addRegister(a);
             break;
-
         case 0x88: /* ADC B */
             addRegisterCarry(b);
             break;
@@ -559,6 +744,7 @@ void Emulator8080::Emulate() {
             addRegisterCarry(a);
             break;
 
+
         case 0x90: /* SUB B */
             subtractRegister(b);
             break;
@@ -583,7 +769,6 @@ void Emulator8080::Emulate() {
         case 0x97: /* SUB A */
             subtractRegister(a);
             break;
-
         case 0x98: /* SBB B */
             subtractRegisterBorrow(b);
             break;
@@ -609,6 +794,7 @@ void Emulator8080::Emulate() {
             subtractRegisterBorrow(a);
             break;
 
+
         case 0xA0: /* ANA B */
             logicalAndRegister(b);
             break;
@@ -633,7 +819,6 @@ void Emulator8080::Emulate() {
         case 0xA7: /* ANA A */
             logicalAndRegister(a);
             break;
-
         case 0xA8: /* XRA B */
             logicalXOrRegister(b);
             break;
@@ -659,6 +844,7 @@ void Emulator8080::Emulate() {
             logicalXOrRegister(a);
             break;
 
+
         case 0xB0: /* ORA B */
             logicalOrRegister(b);
             break;
@@ -683,7 +869,6 @@ void Emulator8080::Emulate() {
         case 0xB7: /* ORA A */
             logicalOrRegister(a);
             break;
-
         case 0xB8: /* CMP B */
             compareRegister(b);
             break;
@@ -709,305 +894,57 @@ void Emulator8080::Emulate() {
             compareRegister(a);
             break;
 
-        case 0x06: /* MVI B, d8 */
-            b = opCode[1];
-            ++pc;
-            break;
-        case 0x16: /* MVI D, d8 */
-            d = opCode[1];
-            ++pc;
-            break;
-        case 0x26: /* MVI H, d8 */
-            h = opCode[1];
-            ++pc;
-            break;
-        case 0x36: /* MVI M, d8 */
-            memory[(h << 8) | l] = opCode[1];
-            ++pc;
-            break;
-        case 0x0E: /* MVI C, d8 */
-            c = opCode[1];
-            ++pc;
-            break;
-        case 0x1E: /* MVI E, d8 */
-            e = opCode[1];
-            ++pc;
-            break;
-        case 0x2E: /* MVI L, d8 */
-            l = opCode[1];
-            ++pc;
-            break;
-        case 0x3E: /* MVI A, d8 */
-            a = opCode[1];
-            ++pc;
-            break;
 
-        case 0x3A: /* LDA addr */
-            a = memory[(opCode[2] << 8) | opCode[1]];
-            pc += 2;
+        case 0xC0: /* RNZ */
+            if (cc.z == 0)
+                ret();
             break;
-
-        case 0x0A: /* LDAX B */
-            a = memory[(b << 8) | c];
+        case 0xC1: /* POP B */
+            popPair(b, c);
             break;
-        case 0x1A: /* LDAX D */
-            b = memory[(d << 8) | e];
-            break;
-
-        case 0x2A: /* LHLD addr */
-            l = memory[(opCode[2] << 8) | opCode[1]];
-            h = memory[((opCode[2] << 8) | opCode[1]) + 1];
-            pc += 2;
-            break;
-
-        case 0x32: /* STA addr */
-            memory[(opCode[2] << 8) | opCode[1]] = a;
-            pc += 2;
-            break;
-
-        case 0x02: /* STAX B */
-            memory[(b << 8) | c] = a;
-            break;
-        case 0x12: /* STAX D */
-            memory[(d << 8) | c] = a;
-            break;
-
-        case 0x22: /* SHLD addr */
-            memory[(opCode[2] << 8) | opCode[1]] = l;
-            memory[((opCode[2] << 8) | opCode[1]) + 1] = h;
-            pc += 2;
-            break;
-
-        case 0xEB: /* XCHG */
-            h = e;
-            l = d;
-            break;
-
-        case 0xC6: /* ADI, d8 */
-            addRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xCE: /* ACI, d8 */
-            addRegisterCarry(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xD6: /* SUI, d8 */
-            subtractRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xDE: /* SBI, d8 */
-            subtractRegisterBorrow(opCode[1]);
-            ++pc;
-            break;
-
-        case 0x03: /* INX B */
-            incrementRegPair(b, c);
-            break;
-        case 0x13: /* INX D */
-            incrementRegPair(d, e);
-            break;
-        case 0x23: /* INX H */
-            incrementRegPair(h, l);
-            break;
-        case 0x33: /* INX SP */
-            ++sp;
-            break;
-
-        case 0x09: /* DAD B */
-            addPairToHL(b, c);
-            break;
-        case 0x19: /* DAD D */
-            addPairToHL(d, e);
-            break;
-        case 0x29: /* DAD H */
-            addPairToHL(h, l);
-            break;
-        case 0x39: /* DAD SP */
-            addPairToHL((sp & 0xFF00) >> 8, sp & 0xFF);
-            break;
-
-        case 0x0B: /* DCX B */
-            decrementRegPair(b, c);
-            break;
-        case 0x1B: /* DCX D */
-            decrementRegPair(d, e);
-            break;
-        case 0x2B: /* DCX H */
-            decrementRegPair(h, l);
-            break;
-        case 0x3B: /* DCX SP */
-            --sp;
-            break;
-
-        case 0x04: /* INR B */
-            incrementRegister(b);
-            break;
-        case 0x0C: /* INR C */
-            incrementRegister(c);
-            break;
-        case 0x14: /* INR D */
-            incrementRegister(d);
-            break;
-        case 0x1C: /* INR E */
-            incrementRegister(e);
-            break;
-        case 0x24: /* INR H */
-            incrementRegister(h);
-            break;
-        case 0x2C: /* INR L */
-            incrementRegister(l);
-            break;
-        case 0x34: /* INR M */
-            incrementRegister(memory[(h << 8) | l]);
-            break;
-        case 0x3C: /* INR A */
-            incrementRegister(a);
-            break;
-
-        case 0x05: /* DCR B */
-            decrementRegister(b);
-            break;
-        case 0x0D: /* DCR C */
-            decrementRegister(c);
-            break;
-        case 0x15: /* DCR D */
-            decrementRegister(d);
-            break;
-        case 0x1D: /* DCR E */
-            decrementRegister(e);
-            break;
-        case 0x25: /* DCR H */
-            decrementRegister(h);
-            break;
-        case 0x2D: /* DCR L */
-            decrementRegister(l);
-            break;
-        case 0x35: /* DCR M */
-            decrementRegister(memory[(h << 8) | l]);
-            break;
-        case 0x3D: /* DCR A */
-            decrementRegister(a);
-            break;
-
-        case 0x27: /* DAA */
-            decimalAdjustAcc();
-            break;
-
-        case 0xE6: /* ANI, d8 */
-            logicalAndRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xEE: /* XRI, d8 */
-            logicalXOrRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xF6: /* ORI, d8 */
-            logicalOrRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0xFE: /* CPI, d8 */
-            compareRegister(opCode[1]);
-            ++pc;
-            break;
-
-        case 0x07: /* RLC */
-            rotateLeft();
-            break;
-        case 0x0F: /* RRC */
-            rotateRight();
-            break;
-
-        case 0x17: /* RAL */
-            rotateLeftCarry();
-            break;
-        case 0x1F: /* RAR */
-            rotateRightCarry();
-            break;
-
-        case 0x2F: /* CMA */
-            a = ~a;
-            break;
-
-        case 0x37: /* STC */
-            cc.cy = 1;
-            break;
-
-        case 0x3F: /* CMC */
-            cc.cy = ~cc.cy;
-            break;
-
-        /* JMP, addr */
-        case 0xC3:
-        case 0xCB:
-            pc = ((opCode[2] << 8) | opCode[1]);
-            break;
-
         case 0xC2: /* JNZ, addr */
             if (cc.z == 0)
                 pc = ((opCode[2] << 8) | opCode[1]);
             else
                 pc += 2;
             break;
-        case 0xCA: /* JZ, addr */
-            if (cc.z == 1)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xD2: /* JNC, addr */
-            if (cc.cy == 0)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xDA: /* JC, addr */
-            if (cc.cy == 1)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xE2: /* JPO, addr */
-            if (cc.p == 0)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xEA: /* JPE, addr */
-            if (cc.p == 1)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xF2: /* JP, addr */
-            if (cc.s == 0)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
-        case 0xFA: /* JM, addr */
-            if (cc.s == 1)
-                pc = ((opCode[2] << 8) | opCode[1]);
-            else
-                pc += 2;
-            break;
 
-        /* CALL, addr */
-        case 0xCD:
-        case 0xDD:
-        case 0xED:
-        case 0xFD:
-            call(opCode[1], opCode[2]);
+            /* JMP, addr */
+        case 0xC3:
+        case 0xCB:
+            pc = ((opCode[2] << 8) | opCode[1]);
             break;
 
         case 0xC4: /* CNZ, addr */
             if (cc.z == 0)
                 call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xC5: /* PUSH B */
+            pushPair(b, c);
+            break;
+        case 0xC6: /* ADI, d8 */
+            addRegister(opCode[1]);
+            ++pc;
+            break;
+        case 0xC7: /* RST 0 */
+            rst(0x00);
+            break;
+        case 0xC8: /* RZ */
+            if (cc.z == 1)
+                ret();
+            break;
+
+            /* RET */
+        case 0xC9:
+        case 0xD9:
+            ret();
+            break;
+
+        case 0xCA: /* JZ, addr */
+            if (cc.z == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
             else
                 pc += 2;
             break;
@@ -1017,9 +954,66 @@ void Emulator8080::Emulate() {
             else
                 pc += 2;
             break;
+
+            /* CALL, addr */
+        case 0xCD:
+        case 0xDD:
+        case 0xED:
+        case 0xFD:
+            call(opCode[1], opCode[2]);
+            break;
+
+        case 0xCE: /* ACI, d8 */
+            addRegisterCarry(opCode[1]);
+            ++pc;
+            break;
+        case 0xCF: /* RST 1 */
+            rst(0x08);
+            break;
+
+
+        case 0xD0: /* RNC */
+            if (cc.cy == 0)
+                ret();
+            break;
+        case 0xD1: /* POP D */
+            popPair(d, e);
+            break;
+        case 0xD2: /* JNC, addr */
+            if (cc.cy == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+
+        case 0xD3: /* OUT, d8 */
+        case 0xDB: /* IN, d8 */
+            ++pc;
+            break;
+
         case 0xD4:  /* CNC, addr */
             if (cc.cy == 0)
                 call(opCode[1], opCode[2]);
+            else
+                pc += 2;
+            break;
+        case 0xD5: /* PUSH D */
+            pushPair(d, e);
+            break;
+        case 0xD6: /* SUI, d8 */
+            subtractRegister(opCode[1]);
+            ++pc;
+            break;
+        case 0xD7: /* RST 2 */
+            rst(0x10);
+            break;
+        case 0xD8: /* RC */
+            if (cc.cy == 1)
+                ret();
+            break;
+        case 0xDA: /* JC, addr */
+            if (cc.cy == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
             else
                 pc += 2;
             break;
@@ -1029,11 +1023,63 @@ void Emulator8080::Emulate() {
             else
                 pc += 2;
             break;
+        case 0xDE: /* SBI, d8 */
+            subtractRegisterBorrow(opCode[1]);
+            ++pc;
+            break;
+        case 0xDF: /* RST 3 */
+            rst(0x18);
+            break;
+
+
+        case 0xE0: /* RPO */
+            if (cc.p == 0)
+                ret();
+            break;
+        case 0xE1: /* POP H */
+            popPair(h, l);
+            break;
+        case 0xE2: /* JPO, addr */
+            if (cc.p == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xE3: /* XTHL */
+            xthl();
+            break;
         case 0xE4: /* CPO, addr */
             if (cc.p == 0)
                 call(opCode[1], opCode[2]);
             else
                 pc += 2;
+            break;
+        case 0xE5: /* PUSH H */
+            pushPair(h, l);
+            break;
+        case 0xE6: /* ANI, d8 */
+            logicalAndRegister(opCode[1]);
+            ++pc;
+            break;
+        case 0xE7: /* RST 4 */
+            rst(0x20);
+            break;
+        case 0xE8: /* RPE */
+            if (cc.p == 1)
+                ret();
+            break;
+        case 0xE9: /* PCHL */
+            pc = ((h << 8) | l);
+            break;
+        case 0xEA: /* JPE, addr */
+            if (cc.p == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xEB: /* XCHG */
+            h = e;
+            l = d;
             break;
         case 0xEC: /* CPE, addr */
             if (cc.p == 1)
@@ -1041,11 +1087,62 @@ void Emulator8080::Emulate() {
             else
                 pc += 2;
             break;
+        case 0xEE: /* XRI, d8 */
+            logicalXOrRegister(opCode[1]);
+            ++pc;
+            break;
+        case 0xEF: /* RST 5 */
+            rst(0x28);
+            break;
+
+
+        case 0xF0: /* RP */
+            if (cc.s == 0)
+                ret();
+            break;
+        case 0xF1: /* POP PSW */
+            popPSW();
+            break;
+        case 0xF2: /* JP, addr */
+            if (cc.s == 0)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xF3: /* DI */
+            intEnable = 0;
+            break;
         case 0xF4: /* CP, addr */
             if (cc.s == 0)
                 call(opCode[1], opCode[2]);
             else
                 pc += 2;
+            break;
+        case 0xF5: /* PUSH PSW */
+            pushPSW();
+            break;
+        case 0xF6: /* ORI, d8 */
+            logicalOrRegister(opCode[1]);
+            ++pc;
+            break;
+        case 0xF7: /* RST 6 */
+            rst(0x30);
+            break;
+        case 0xF8: /* RM */
+            if (cc.s == 1)
+                ret();
+            break;
+        case 0xF9: /* SPHL */
+            sp = ((h << 8) | l);
+            break;
+        case 0xFA: /* JM, addr */
+            if (cc.s == 1)
+                pc = ((opCode[2] << 8) | opCode[1]);
+            else
+                pc += 2;
+            break;
+        case 0xFB: /* EI */
+            intEnable = 1;
             break;
         case 0xFC: /* CM, addr */
             if (cc.s == 1)
@@ -1053,124 +1150,14 @@ void Emulator8080::Emulate() {
             else
                 pc += 2;
             break;
-
-            /* RET */
-        case 0xC9:
-        case 0xD9:
-            ret();
-            break;
-
-        case 0xC0: /* RNZ */
-            if (cc.z == 0)
-                ret();
-            break;
-        case 0xC8: /* RZ */
-            if (cc.z == 1)
-                ret();
-            break;
-        case 0xD0: /* RNC */
-            if (cc.cy == 0)
-                ret();
-            break;
-        case 0xD8: /* RC */
-            if (cc.cy == 1)
-                ret();
-            break;
-        case 0xE0: /* RPO */
-            if (cc.p == 0)
-                ret();
-            break;
-        case 0xE8: /* RPE */
-            if (cc.p == 1)
-                ret();
-            break;
-        case 0xF0: /* RP */
-            if (cc.s == 0)
-                ret();
-            break;
-        case 0xF8: /* RM */
-            if (cc.s == 1)
-                ret();
-            break;
-
-        case 0xC7: /* RST 0 */
-            rst(0x00);
-            break;
-        case 0xCF: /* RST 1 */
-            rst(0x08);
-            break;
-        case 0xD7: /* RST 2 */
-            rst(0x10);
-            break;
-        case 0xDF: /* RST 3 */
-            rst(0x18);
-            break;
-        case 0xE7: /* RST 4 */
-            rst(0x20);
-            break;
-        case 0xEF: /* RST 5 */
-            rst(0x28);
-            break;
-        case 0xF7: /* RST 6 */
-            rst(0x30);
+        case 0xFE: /* CPI, d8 */
+            compareRegister(opCode[1]);
+            ++pc;
             break;
         case 0xFF: /* RST 7 */
             rst(0x38);
             break;
 
-        case 0xE9: /* PCHL */
-            pc = ((h << 8) | l);
-            break;
-
-        case 0xC1: /* POP B */
-            popPair(b, c);
-            break;
-        case 0xD1: /* POP D */
-            popPair(d, e);
-            break;
-        case 0xE1: /* POP H */
-            popPair(h, l);
-            break;
-        case 0xF1: /* POP PSW */
-            popPSW();
-            break;
-
-        case 0xC5: /* PUSH B */
-            pushPair(b, c);
-            break;
-        case 0xD5: /* PUSH D */
-            pushPair(d, e);
-            break;
-        case 0xE5: /* PUSH H */
-            pushPair(h, l);
-            break;
-        case 0xF5: /* PUSH PSW */
-            pushPSW();
-            break;
-
-        case 0xE3: /* XTHL */
-            xthl();
-            break;
-
-        case 0xF9: /* SPHL */
-            sp = ((h << 8) | l);
-            break;
-
-        case 0xDB: /* IN, d8 */
-        case 0xD3: /* OUT, d8 */
-            ++pc;
-            break;
-
-        case 0xFB: /* EI */
-            intEnable = 1;
-            break;
-        case 0xF3: /* DI */
-            intEnable = 0;
-            break;
-
-        case 0x76: /* HLT */
-            std::exit(0);
-            break;
 
         /* Unimplemented */
         default:

@@ -15,11 +15,12 @@ struct ConditionCodes
 class Emulator8080
 {
 public:
+    Emulator8080();
+
     void Emulate();
-    bool Running() const;
 
 private:
-    void UnimplementedInstruction();
+    static void UnimplementedInstruction();
 
     void setFlags(uint16_t ans);
 
@@ -62,8 +63,6 @@ private:
     uint8_t *memory;
     uint8_t intEnable;
     ConditionCodes cc;
-
-    bool running;
 };
 
 #endif
