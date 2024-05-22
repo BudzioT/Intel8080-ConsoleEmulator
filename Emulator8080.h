@@ -16,8 +16,10 @@ class Emulator8080
 {
 public:
     Emulator8080();
+    explicit Emulator8080(unsigned char* buffer, uint16_t counter = 0);
 
     void Emulate();
+    uint16_t ProgramCounter() const;
 
 private:
     static void UnimplementedInstruction();

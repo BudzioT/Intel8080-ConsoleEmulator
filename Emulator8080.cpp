@@ -8,6 +8,10 @@ Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0), 
     intEnable(0), memory(nullptr)
 { }
 
+Emulator8080::Emulator8080(unsigned char* buffer, uint16_t counter) : a(0), b(0), c(0), d(0), e(0),
+    h(0), l(0), sp(0), pc(counter), intEnable(0), memory(buffer)
+{ }
+
 /* Handle unimplemented instructions */
 void Emulator8080::UnimplementedInstruction() {
     printf("Error: Unimplemented Instruction!");
@@ -289,6 +293,10 @@ void Emulator8080::xthl() {
     memory[sp + 1] = temp;
 }
 
+
+uint16_t Emulator8080::ProgramCounter() const {
+    return pc;
+}
 
 /* Emulate the 8080 using saved memory buffer */
 void Emulator8080::Emulate() {
