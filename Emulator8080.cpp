@@ -911,8 +911,10 @@ void Emulator8080::Emulate() {
             popPair(b, c);
             break;
         case 0xC2: /* JNZ, addr */
-            if (cc.z == 0)
+            if (cc.z == 0) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -921,11 +923,13 @@ void Emulator8080::Emulate() {
         case 0xC3:
         case 0xCB:
             pc = ((opCode[2] << 8) | opCode[1]);
-            break;
+            return;
 
         case 0xC4: /* CNZ, addr */
-            if (cc.z == 0)
+            if (cc.z == 0) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -938,27 +942,33 @@ void Emulator8080::Emulate() {
             break;
         case 0xC7: /* RST 0 */
             rst(0x00);
-            break;
+            return;
         case 0xC8: /* RZ */
-            if (cc.z == 1)
+            if (cc.z == 1) {
                 ret();
+                return;
+            }
             break;
 
             /* RET */
         case 0xC9:
         case 0xD9:
             ret();
-            break;
+            return;
 
         case 0xCA: /* JZ, addr */
-            if (cc.z == 1)
+            if (cc.z == 1) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
         case 0xCC: /* CZ, addr */
-            if (cc.z == 1)
+            if (cc.z == 1) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -969,7 +979,7 @@ void Emulator8080::Emulate() {
         case 0xED:
         case 0xFD:
             call(opCode[1], opCode[2]);
-            break;
+            return;
 
         case 0xCE: /* ACI, d8 */
             addRegisterCarry(opCode[1]);
@@ -977,19 +987,23 @@ void Emulator8080::Emulate() {
             break;
         case 0xCF: /* RST 1 */
             rst(0x08);
-            break;
+            return;
 
 
         case 0xD0: /* RNC */
-            if (cc.cy == 0)
+            if (cc.cy == 0) {
                 ret();
+                return;
+            }
             break;
         case 0xD1: /* POP D */
             popPair(d, e);
             break;
         case 0xD2: /* JNC, addr */
-            if (cc.cy == 0)
+            if (cc.cy == 0) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1000,8 +1014,10 @@ void Emulator8080::Emulate() {
             break;
 
         case 0xD4:  /* CNC, addr */
-            if (cc.cy == 0)
+            if (cc.cy == 0) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1014,20 +1030,26 @@ void Emulator8080::Emulate() {
             break;
         case 0xD7: /* RST 2 */
             rst(0x10);
-            break;
+            return;
         case 0xD8: /* RC */
-            if (cc.cy == 1)
+            if (cc.cy == 1) {
                 ret();
+                return;
+            }
             break;
         case 0xDA: /* JC, addr */
-            if (cc.cy == 1)
+            if (cc.cy == 1) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
         case 0xDC:  /* CC, addr */
-            if (cc.cy == 1)
+            if (cc.cy == 1) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1037,19 +1059,23 @@ void Emulator8080::Emulate() {
             break;
         case 0xDF: /* RST 3 */
             rst(0x18);
-            break;
+            return;
 
 
         case 0xE0: /* RPO */
-            if (cc.p == 0)
+            if (cc.p == 0) {
                 ret();
+                return;
+            }
             break;
         case 0xE1: /* POP H */
             popPair(h, l);
             break;
         case 0xE2: /* JPO, addr */
-            if (cc.p == 0)
+            if (cc.p == 0) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1057,8 +1083,10 @@ void Emulator8080::Emulate() {
             xthl();
             break;
         case 0xE4: /* CPO, addr */
-            if (cc.p == 0)
+            if (cc.p == 0) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1071,17 +1099,21 @@ void Emulator8080::Emulate() {
             break;
         case 0xE7: /* RST 4 */
             rst(0x20);
-            break;
+            return;
         case 0xE8: /* RPE */
-            if (cc.p == 1)
+            if (cc.p == 1) {
                 ret();
+                return;
+            }
             break;
         case 0xE9: /* PCHL */
             pc = ((h << 8) | l);
-            break;
+            return;
         case 0xEA: /* JPE, addr */
-            if (cc.p == 1)
+            if (cc.p == 1) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1090,8 +1122,10 @@ void Emulator8080::Emulate() {
             l = d;
             break;
         case 0xEC: /* CPE, addr */
-            if (cc.p == 1)
+            if (cc.p == 1) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1101,19 +1135,23 @@ void Emulator8080::Emulate() {
             break;
         case 0xEF: /* RST 5 */
             rst(0x28);
-            break;
+            return;
 
 
         case 0xF0: /* RP */
-            if (cc.s == 0)
+            if (cc.s == 0) {
                 ret();
+                return;
+            }
             break;
         case 0xF1: /* POP PSW */
             popPSW();
             break;
         case 0xF2: /* JP, addr */
-            if (cc.s == 0)
+            if (cc.s == 0) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1121,8 +1159,10 @@ void Emulator8080::Emulate() {
             intEnable = 0;
             break;
         case 0xF4: /* CP, addr */
-            if (cc.s == 0)
+            if (cc.s == 0) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1135,17 +1175,21 @@ void Emulator8080::Emulate() {
             break;
         case 0xF7: /* RST 6 */
             rst(0x30);
-            break;
+            return;
         case 0xF8: /* RM */
-            if (cc.s == 1)
+            if (cc.s == 1) {
                 ret();
+                return;
+            }
             break;
         case 0xF9: /* SPHL */
             sp = ((h << 8) | l);
             break;
         case 0xFA: /* JM, addr */
-            if (cc.s == 1)
+            if (cc.s == 1) {
                 pc = ((opCode[2] << 8) | opCode[1]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1153,8 +1197,10 @@ void Emulator8080::Emulate() {
             intEnable = 1;
             break;
         case 0xFC: /* CM, addr */
-            if (cc.s == 1)
+            if (cc.s == 1) {
                 call(opCode[1], opCode[2]);
+                return;
+            }
             else
                 pc += 2;
             break;
@@ -1164,7 +1210,7 @@ void Emulator8080::Emulate() {
             break;
         case 0xFF: /* RST 7 */
             rst(0x38);
-            break;
+            return;
 
 
         /* Unimplemented */
