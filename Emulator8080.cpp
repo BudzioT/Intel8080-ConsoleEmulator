@@ -390,7 +390,7 @@ void Emulator8080::Emulate() {
             addPairToHL(d, e);
             break;
         case 0x1A: /* LDAX D */
-            b = memory[(d << 8) | e];
+            a = memory[(d << 8) | e];
             break;
         case 0x1B: /* DCX D */
             decrementRegPair(d, e);
