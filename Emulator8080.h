@@ -47,6 +47,7 @@ private:
     void rotateRightCarry();
 
     void call(uint8_t byte1, uint8_t byte2);
+    void sCall(uint8_t byte1, uint8_t byte2);
     void ret();
     void rst(int nnn);
 

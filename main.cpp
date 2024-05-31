@@ -11,7 +11,7 @@ int main() {
     std::string path;
     std::cin >> path;
     */
-    std::string path = "D:\\Pobrane\\Github_projects\\Intel8080-ConsoleEmulator\\ROMS\\SpaceInvaders\\invaders.concatenated";
+    std::string path = "D:\\Pobrane\\Github_projects\\Intel8080-ConsoleEmulator\\ROMS\\cpudiag.bin";
 
     FILE* file = fopen(path.c_str(), "rb");
     if (!file) {
@@ -21,22 +21,25 @@ int main() {
 
     fseek(file, 0, SEEK_END);
     unsigned int size = ftell(file);
-    auto* buffer = new unsigned char[size];
     fseek(file, 0, SEEK_SET);
 
+    auto* memory = new uint8_t [0x10000];
+    uint8_t* buffer = &memory[0x100];
     fread(buffer, size, 1, file);
     fclose(file);
 
-    int pc = 0;
     int line = 0;
 
-    Emulator8080 emulator(buffer);
+    /* Fix the stack pointer from 0x6ad to 0x7ad */
+    buffer[368] = 0x7;
+
+    Emulator8080 emulator(memory, 0x0100);
     while(emulator.ProgramCounter() < size) {
         printf("%d: ", ++line);
-        disassembler(buffer, emulator.ProgramCounter());
         emulator.Emulate();
+        disassembler(memory, emulator.ProgramCounter());
     }
 
-    delete[] buffer;
+    delete[] memory;
     return 0;
 }

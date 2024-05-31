@@ -70,7 +70,7 @@ void Emulator8080::subtractRegister(uint8_t reg) {
     setFlags(ans);
     /* Set the rest of flags */
     cc.cy = a < reg;
-    cc.ac = ((a & 0xF) < (b & 0xF));
+    cc.ac = ((a & 0xF) < (reg & 0xF));
 
     a = ans & 0xFF;
 }
@@ -228,6 +228,29 @@ void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
     memory[sp - 2] = (nextIns & 0xFF);
     sp -= 2;
     pc = ((byte2 << 8) | byte1);
+}
+
+void Emulator8080::sCall(uint8_t byte1, uint8_t byte2) {
+    if (5 == ((byte2 << 8) | byte1)) {
+        if (c == 9) {
+            uint16_t offset = (d << 8) | e;
+            char* str = reinterpret_cast<char*>(&memory[offset + 3]);
+            while (*str != '$')
+                printf("%c", *str++);
+            printf("\n");
+        }
+        else if (c == 2)
+            printf("Print char routine called\n");
+    }
+    else if (0 == ((byte2 << 8) | byte1))
+        exit(0);
+    else {
+        uint16_t nextIns = pc + 3;
+        memory[sp - 1] = ((nextIns >> 8) & 0xFF);
+        memory[sp - 2] = (nextIns & 0xFF);
+        sp -= 2;
+        pc = ((byte2 << 8) | byte1);
+    }
 }
 
 /* Jump to the memory specified by the stack pointer */
@@ -975,6 +998,8 @@ void Emulator8080::Emulate() {
 
             /* CALL, addr */
         case 0xCD:
+            sCall(opCode[1], opCode[2]);
+            break;
         case 0xDD:
         case 0xED:
         case 0xFD:
