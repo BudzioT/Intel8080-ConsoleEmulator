@@ -4,12 +4,12 @@
 #include <cstdlib>
 
 
-Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0), pc(0),
+Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0xFFFF), pc(0),
     intEnable(1), memory(nullptr)
 { }
 
 Emulator8080::Emulator8080(unsigned char* buffer, uint16_t counter) : a(0), b(0), c(0), d(0), e(0),
-    h(0), l(0), sp(0), pc(counter), intEnable(1), memory(buffer)
+    h(0), l(0), sp(0xFFFF), pc(counter), intEnable(1), memory(buffer)
 { }
 
 /* Handle unimplemented instructions */
@@ -228,29 +228,6 @@ void Emulator8080::call(uint8_t byte1, uint8_t byte2) {
     memory[sp - 2] = (nextIns & 0xFF);
     sp -= 2;
     pc = ((byte2 << 8) | byte1);
-}
-
-void Emulator8080::sCall(uint8_t byte1, uint8_t byte2) {
-    if (5 == ((byte2 << 8) | byte1)) {
-        if (c == 9) {
-            uint16_t offset = (d << 8) | e;
-            char* str = reinterpret_cast<char*>(&memory[offset + 3]);
-            while (*str != '$')
-                printf("%c", *str++);
-            printf("\n");
-        }
-        else if (c == 2)
-            printf("Print char routine called\n");
-    }
-    else if (0 == ((byte2 << 8) | byte1))
-        exit(0);
-    else {
-        uint16_t nextIns = pc + 3;
-        memory[sp - 1] = ((nextIns >> 8) & 0xFF);
-        memory[sp - 2] = (nextIns & 0xFF);
-        sp -= 2;
-        pc = ((byte2 << 8) | byte1);
-    }
 }
 
 /* Jump to the memory specified by the stack pointer */
@@ -927,8 +904,10 @@ void Emulator8080::Emulate() {
 
 
         case 0xC0: /* RNZ */
-            if (cc.z == 0)
+            if (cc.z == 0) {
                 ret();
+                return;
+            }
             break;
         case 0xC1: /* POP B */
             popPair(b, c);
@@ -998,8 +977,6 @@ void Emulator8080::Emulate() {
 
             /* CALL, addr */
         case 0xCD:
-            sCall(opCode[1], opCode[2]);
-            break;
         case 0xDD:
         case 0xED:
         case 0xFD:
