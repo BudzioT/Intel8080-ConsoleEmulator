@@ -70,7 +70,7 @@ void Emulator8080::subtractRegister(uint8_t reg) {
     setFlags(ans);
     /* Set the rest of flags */
     cc.cy = a < reg;
-    cc.ac = ((a & 0xF) < (b & 0xF));
+    cc.ac = ((a & 0xF) < (reg & 0xF));
 
     a = ans & 0xFF;
 }
@@ -904,8 +904,10 @@ void Emulator8080::Emulate() {
 
 
         case 0xC0: /* RNZ */
-            if (cc.z == 0)
+            if (cc.z == 0) {
                 ret();
+                return;
+            }
             break;
         case 0xC1: /* POP B */
             popPair(b, c);
