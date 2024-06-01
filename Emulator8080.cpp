@@ -4,12 +4,12 @@
 #include <cstdlib>
 
 
-Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0xFFFF), pc(0),
+Emulator8080::Emulator8080() : a(0), b(0), c(0), d(0), e(0), h(0), l(0), sp(0), pc(0),
     intEnable(1), memory(nullptr)
 { }
 
 Emulator8080::Emulator8080(unsigned char* buffer, uint16_t counter) : a(0), b(0), c(0), d(0), e(0),
-    h(0), l(0), sp(0xFFFF), pc(counter), intEnable(1), memory(buffer)
+    h(0), l(0), sp(0), pc(counter), intEnable(1), memory(buffer)
 { }
 
 /* Handle unimplemented instructions */

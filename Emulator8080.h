@@ -7,7 +7,7 @@ struct ConditionCodes
 {
     uint8_t z = 0;
     uint8_t s = 0;
-    uint8_t p = 1;
+    uint8_t p = 0;
     uint8_t cy = 0;
     uint8_t ac = 0;
 };
@@ -47,7 +47,6 @@ private:
     void rotateRightCarry();
 
     void call(uint8_t byte1, uint8_t byte2);
-    void sCall(uint8_t byte1, uint8_t byte2);
     void ret();
     void rst(int nnn);
 
